@@ -1,0 +1,506 @@
+# Copyright © 2026 Racpast. All Rights Reserved.
+#
+# This file is part of SNIBypassGUI, a proprietary software project.
+#
+# NOTICE: All information contained herein is, and remains the property of
+# Racpast. The intellectual and technical concepts contained herein are
+# proprietary to Racpast and are protected by copyright law and international
+# treaties. Dissemination of this information or reproduction of this material
+# is strictly forbidden unless prior written permission is obtained from Racpast.
+#
+# Unauthorized copying, modification, distribution, or use of this file,
+# via any medium, is strictly prohibited.
+#
+# For licensing inquiries: snibypassgui@gmail.com or racpast@gmail.com
+#
+# See the license file in the project root for full terms and conditions.
+
+# ==============================================================================
+# Resolvers
+# ==============================================================================
+
+[resolvers.googledns-plain]
+endpoint = "8.8.8.8"
+
+[resolvers.cloudflare-dot]
+endpoint = "tls://1.1.1.1"
+
+[resolvers.dnspod-doh]
+endpoint = "https://doh.pub/dns-query"
+upstream = "1.12.12.12"
+
+[resolvers.alidns-doh]
+endpoint = "https://dns.alidns.com/dns-query"
+upstream = "223.5.5.5"
+
+[resolvers.onedns-doh]
+endpoint = "https://doh.onedns.net/dns-query"
+upstream = "52.80.248.44"
+
+[resolvers.cloudflare-doh]
+endpoint = "https://dns.cloudflare.com/dns-query"
+upstream = "saas.sin.fan"
+bootstrap = "@alidns-doh"
+
+  [resolvers.cloudflare-doh.ech]
+  mode = "doh-with-fallback"
+  config = "AEX+DQBBagAgACDxHksgvjRz7PGcNfswHCxrM4w/vfv6xWFZZS3QqXkqQgAEAAEAAQASY2xvdWRmbGFyZS1lY2guY29tAAA="
+  require_ech = true
+  ech_refresh = "1h"
+  ech_domain = "cloudflare-ech.com"
+
+
+# ==============================================================================
+# Upstream Pools
+# ==============================================================================
+
+[pools.cloudflare]
+targets = [
+  "cf.090227.xyz",
+  "saas.sin.fan",
+  "cf.0sm.com",
+  "cf.3666888.xyz",
+  "cloudflare.182682.xyz",
+  "dnew.cc",
+  "mfa.gov.ua",
+  "www.shopify.com",
+  "store.ubi.com",
+  "172.64.229.0/24[256]",
+]
+fallback = 0
+resolver = "@onedns-doh"
+
+  [pools.cloudflare.probe]
+  mode = "http"
+  url = "https://cdn.rpnet.cc/cdn-cgi/trace"
+  expect_status = [200]
+  timeout = "5s"
+  interval = "3m"
+  degraded_interval = "30s"
+  fail_threshold = 2
+
+[pools.cdn77]
+targets = [
+  "156.146.34.194", "156.146.34.195", "156.146.34.193", "156.146.34.202", "156.146.34.203", "156.146.34.204", "156.146.34.206", "156.146.34.205", "156.146.34.207", "156.146.35.198", "156.146.35.203", "156.146.35.221", "156.146.35.220", "156.146.35.224", "156.146.35.225", "156.146.35.223", "156.146.35.227", "156.146.35.226", "156.146.35.230", "156.146.35.229", "156.146.35.228", "156.146.35.232", "156.146.35.233", "156.146.35.240", "156.146.35.239", "156.146.35.246",
+  "89.187.160.10", "89.187.160.18", "89.187.160.35", "89.187.160.33", "89.187.160.44", "89.187.160.43", "89.187.160.57", "89.187.160.55", "89.187.160.54",
+  "89.187.162.29", "89.187.162.30", "89.187.162.33", "89.187.162.39", "89.187.162.40", "89.187.162.41", "89.187.162.56", "89.187.162.57", "89.187.162.129", "89.187.162.139", "89.187.162.142", "89.187.162.140", "89.187.162.143", "89.187.162.141", "89.187.162.147", "89.187.163.20", "89.187.163.18", "89.187.163.19", "89.187.163.17",
+  "143.244.51.4", "143.244.51.1", "143.244.51.2", "143.244.51.3", "143.244.51.10", "143.244.51.12", "143.244.51.7", "143.244.51.8", "143.244.51.5", "143.244.51.11", "143.244.51.57", "143.244.51.51", "143.244.51.193", "143.244.51.195", "143.244.51.194", "143.244.51.197", "143.244.51.198", "143.244.51.217", "143.244.51.218", "143.244.51.210", "143.244.51.219", "143.244.51.221", "143.244.51.224", "143.244.51.228", "143.244.51.222", "143.244.51.227", "143.244.51.233", "143.244.51.225", "143.244.51.226", "143.244.51.229", "143.244.51.241", "143.244.51.214", "143.244.51.238", "143.244.51.234", "143.244.51.239",
+]
+fallback = 0
+
+  [pools.cdn77.probe]
+  mode = "tls"
+  sni = "www.cdn77.com"
+  timeout = "5s"
+  interval = "3m"
+  degraded_interval = "30s"
+  fail_threshold = 2
+
+
+# ==============================================================================
+# Templates
+# ==============================================================================
+
+[templates.cf-optimize]
+upstream = "@cloudflare"
+select = ["ipv4"]
+
+[templates.nat64-proxy]
+nat64_prefix = "2a01:4f8:c2c:123f:64:5::"
+address_family = "ipv4"
+resolver = "@cloudflare-doh"
+
+
+# ==============================================================================
+# Regexes
+# ==============================================================================
+
+# [regexes.cdn-upos]
+# pattern = "^upos-[a-z0-9-]+\\.akamaized\\.net$"
+# scope_suffix = ["*.akamaized.net"]
+
+[regexes.deviantart-non-cloudfront]
+pattern = "^(?:(?:fc|orig|img|pre|t|prnt|film|vid)\\d{2}|sh|sitemaps|staff|phrac)\\.deviantart\\.net$"
+scope_suffix = ["*.deviantart.net"]
+
+
+# ==============================================================================
+# Global
+# ==============================================================================
+
+[global]
+log = "info"
+connect_timeout = "5s"
+resolver = "@onedns-doh"
+ech_refresh = "1h"
+unmatched = "close"
+
+[global.http2]
+enabled = true
+probe = "warn"
+
+[ca]
+cert_path = "ca/ca.crt"
+key_path  = "ca/ca.key"
+common_name = "SNIBypassGUI Local CA"
+organization = "Racpast"
+leaf_validity_days = 397
+install_to_system_root = true
+
+[store]
+enabled = true
+dir = "certs"
+renew_margin_days = 30
+
+[cache]
+capacity = 8192
+ttl_secs = 86400
+
+[psl]
+source = "file"
+max_age = "30d"
+auto_update = true
+
+
+# ==============================================================================
+# Listeners
+# ==============================================================================
+
+[[listener]]
+addr = 443
+
+  [listener.ech]
+  mode = "doh-with-fallback"
+  config = "AEX+DQBBagAgACDxHksgvjRz7PGcNfswHCxrM4w/vfv6xWFZZS3QqXkqQgAEAAEAAQASY2xvdWRmbGFyZS1lY2guY29tAAA="
+  ech_domain = "cloudflare-ech.com"
+  require_ech = true
+
+
+  # ------------------------------------------------------------------------------
+  # Cloudflare ECH
+  # ------------------------------------------------------------------------------
+
+  [[listener.route]]
+  match_sni = [
+    # Anime-Sharing Community
+    ".anime-sharing.com",
+
+    # ASMR Online
+    ".asmr.one", ".asmr-100.com", ".asmr-200.com", ".asmr-300.com",
+
+    # ASMR 基佬中心
+    ".asmrgay.com", ".asmrgay.org", ".asmrgay.net", ".asmr.pw", ".asmr.uno", "asmr.121231234.xyz",
+
+    # Bangumi 番组计划
+    ".bgm.tv", ".chii.in",
+
+    # Bluesky
+    "live-events.workers.bsky.app", "ip.bsky.app", "communities.bsky.app", "anycast.bsky.app", "app-config.workers.bsky.app", "staging.bsky.app", "endpoints.bsky.app",
+
+    # character.ai
+    ".character.ai",
+
+    # Civitai
+    ".civitai.com",
+
+    # Cloudflare
+    ".workers.dev", ".pages.dev", ".cloudflare.com", ".cloudflare-dns.com",
+
+    # Danbooru
+    "danbooru.donmai.us", "cdn.donmai.us", "safebooru.donmai.us", "raikou2.donmai.us", "donmai.us", "raikou1.donmai.us", "testbooru.donmai.us", "saitou.donmai.us", "hijiribe.donmai.us", "sonohara.donmai.us", "raikou3.donmai.us", "www.danbooru.donmai.us", "isshiki.donmai.us", "autotagger.donmai.us", "cdn1.donmai.us", "raikou4.donmai.us", "betabooru.donmai.us", "testbooru-cdn.donmai.us", "shima.donmai.us", "kagamihara.donmai.us", "signoz.donmai.us", "cdn0.donmai.us", "www.donmai.us",
+
+    # DLsite
+    "img.dlsite.jp",
+
+    # E-Hentai
+    ".hentaiverse.org",
+
+    # e621
+    ".e621.net",
+
+    # Fandom
+    ".fandom.com",
+
+    # GameBanana
+    ".gamebanana.com",
+
+    # Greasy Fork
+    ".greasyfork.org",
+
+    # Gumroad
+    ".gumroad.com",
+
+    # Hanime1.me
+    ".hanime1.me",
+
+    # Hugging Face
+    ".cdn-test.huggingface.co",
+
+    # Hysteria 2
+    "v2.hysteria.network",
+
+    # H 萌娘
+    ".hmoegirl.com", ".hmoegirl.net",
+
+    # itch.io
+    ".itch.io",
+
+    # Iwara
+    ".iwara.tv", ".iwara.ai",
+
+    # konachan.com
+    ".konachan.com",
+
+    # LINUX DO
+    ".linux.do",
+
+    # Medium
+    ".medium.com",
+
+    # mod.io
+    ".mod.io",
+
+    # MyFigureCollection.net
+    ".myfigurecollection.net",
+
+    # nhentai
+    ".nhentai.net",
+
+    # nicozon
+    ".nicozon.net",
+
+    # NodeSeek
+    ".nodeseek.com",
+
+    # Note.ms
+    ".note.ms",
+
+    # OnlyFans
+    "onlyfans.com", "blog.onlyfans.com", "media.onlyfans.com", "store.onlyfans.com", "www.onlyfans.com", "welcome.onlyfans.com", "zendesk1.onlyfans.com", "id2.onlyfans.com", "zendesk3.onlyfans.com", "zendesk2.onlyfans.com", "merch.onlyfans.com", "zendesk4.onlyfans.com",
+
+    # Patreon
+    "patreon.com", "blog.patreon.com", "support.patreon.com", "privacy.patreon.com", "docs.patreon.com", "events.patreon.com", "c5.patreon.com", "c6.patreon.com", "creatorhub.patreon.com", "next.patreon.com", "news.patreon.com", "email.mailgun.patreon.com", "c7.patreon.com", "c8.patreon.com", "c1.patreon.com", "c13.patreon.com", "partners.patreon.com", "learn.patreon.com", "cdn6.patreon.com", "c10.patreon.com", "zendesk2.patreon.com", "staging.patreon.com", "webhooks.patreon.com", "learnmore.patreon.com", "share.patreon.com", "pref.patreon.com", "www.patreon.com", "static-secure.patreon.com", "jobs.patreon.com", "pullup.patreon.com", "cdn1.patreon.com", "open.patreon.com", "c16.patreon.com", "c14.patreon.com", "cdn2.patreon.com", "track.patreon.com", "admin.patreon.com", "zendesk3.patreon.com", "comingsoon.patreon.com", "links.patreon.com", "pm-bounces.c.patreon.com", "creatorfest.patreon.com", "staging-jordan.patreon.com", "zendesk4.patreon.com", "c11.patreon.com", "secure.patreon.com", "c4.patreon.com", "pm-bounces.patreon.com", "email.email.patreon.com", "go.patreon.com", "api.patreon.com", "cast-static.patreon.com", "zendesk1.patreon.com", "cdn5.patreon.com", "payments.patreon.com", "hooks.patreon.com", "backstage.patreon.com", ".patreonusercontent.com",
+
+    # Perplexity
+    ".perplexity.ai",
+
+    # Pixiv
+    ".pixiv.net",
+
+    # pixivFANBOX
+    ".fanbox.cc",
+
+    # Pornhub
+    "mux-cf.phncdn.com", "hv-h.phncdn.com", "hm-h.phncdn.com", "hv2-h.phncdn.com", "hm-c.phncdn.com", "hm2-h.phncdn.com", "clips-cf.phncdn.com",
+
+    # Reddit
+    "pi.reddit.com", "w3-reporting.reddit.com",
+
+    # RipperStore
+    "forum.ripper.store",
+
+    # Rumble
+    "static.rumble.com",
+
+    # Ryuugames
+    ".ryuugames.com",
+
+    # Substack
+    ".substack.com",
+
+    # Typora
+    ".typora.io",
+
+    # Urban Dictionary
+    "hb.urbandictionary.com",
+
+    # wallhaven.cc
+    ".wallhaven.cc",
+
+    # X (Twitter)
+    ".x.com", ".twimg.com", ".twitter.com", ".t.co",
+
+    # 巴哈姆特
+    ".gamer.com.tw",
+
+    # 禁漫天堂
+    ".18comic.vip", ".18comic.ink",
+
+    # 琉璃神社
+    ".hacg.me",
+
+    # 南+ South Plus
+    "bbs.imoutolove.me", "east-plus.net", "bbs.east-plus.net", "www.east-plus.net", "south-plus.net", "www.south-plus.net", "bbs.south-plus.net", "north-plus.net", "www.north-plus.net", "bbs.north-plus.net", "spring-plus.net", "www.spring-plus.net", "bbs.spring-plus.net", "summer-plus.net", "www.summer-plus.net", "bbs.summer-plus.net", "snow-plus.net", "www.snow-plus.net", "bbs.snow-plus.net", "white-plus.net", "www.white-plus.net", "bbs.white-plus.net", "level-plus.net", "www.level-plus.net", "bbs.level-plus.net", "south-plus.org", "www.south-plus.org", "bbs.south-plus.org", "assets.south-plus.org",
+
+    # 轻小说机翻
+    ".novelia.cc",
+
+    # 紳士漫畫
+    ".wnacg.com", ".wnacg.ru", ".qy0.ru", ".wcdn.date",
+
+    # 松鼠症仓库
+    ".ahri8.com", ".ahri8.monster",
+
+    # Reserved
+    "update.rpnet.cc",
+  ]
+  type = "ech"
+  use = "cf-optimize"
+
+
+  # ------------------------------------------------------------------------------
+  # NAT64 ECH
+  # ------------------------------------------------------------------------------
+
+  [[listener.route]]
+  match_sni = [
+    # ChatGPT
+    ".chatgpt.com",
+
+    # Grok
+    "grok.x.com", ".grok.com", ".x.ai", ".grokipedia.com",
+
+    # Poe
+    ".poe.com",
+
+    # Truth Social
+    ".truthsocial.com",
+  ]
+  type = "ech"
+  use = "nat64-proxy"
+
+  # Microsoft Copilot
+  [[listener.route]]
+  match_sni = ["copilot.microsoft.com"]
+  upstream = "copilot.microsoft.com.cdn.cloudflare.net"
+  type = "ech"
+  use = "nat64-proxy"
+
+
+  # ------------------------------------------------------------------------------
+  # NAT64
+  # ------------------------------------------------------------------------------
+
+  [[listener.route]]
+  match_sni = [
+    # Arena AI
+    "arena.ai",
+
+    # Bilibili
+    # "@cdn-upos", "p-bstarstatic.akamaized.net",
+
+    # Claude
+    ".claude.ai",
+
+    # Ecosia
+    ".ecosia.org",
+
+    # MakerWorld
+    ".makerworld.com",
+
+    # SecurityTrails
+    ".securitytrails.com",
+  ]
+  type = "tls"
+  use = "nat64-proxy"
+
+  # Bilibili
+  [[listener.route]]
+  match_sni = [".bilibili.tv"]
+  upstream = "i.w.bilicdn1.com"
+  type = "tls"
+  use = "nat64-proxy"
+
+
+  # ------------------------------------------------------------------------------
+  # No SNI
+  # ------------------------------------------------------------------------------
+
+  [[listener.route]]
+  match_sni = [
+    # Bangumi 番组计划
+    # ".bangumi.tv",
+
+    # Bluesky
+    "bsky.app", "api.bsky.app", "go.bsky.app", "mod-de.bsky.app", "account.bsky.app", "mm-bounce.bsky.app", "mod-in.bsky.app", "mod.bsky.app", "bsync.bsky.app", "dev.bsky.app", "embed.bsky.app", "events.bsky.app", "cardyb.bsky.app", "gifs.bsky.app", "ogcard.bsky.app", "mod-br.bsky.app", "mod-ru.bsky.app", "evt.bsky.app", "video-origin.bsky.app", "forms.bsky.app", "mod-tr.bsky.app", "api.pop2.bsky.app", "dashy.bsky.app", "api.evt.bsky.app", "invite.bsky.app",
+
+    # Deviantart
+    "deviantart.net", "@deviantart-non-cloudfront",
+
+    # FapForFun
+    ".fapforfun.net",
+
+    # Heroku Apps
+    ".herokuapp.com",
+
+    # MEGA
+    ".mega.nz", "mega.io", ".mega.co.nz",
+
+    # OnlyFans
+    "ws2.onlyfans.com",
+
+    # Reddit
+    "gql-realtime.reddit.com",
+
+    # Tumblr
+    ".tumblr.com",
+
+    # 同人ゲーム セーブデータ
+    "wp517500.wpx.jp",
+
+    # 伊莉討論區
+    ".eyny.com",
+  ]
+  type = "tls"
+  override_sni = ""
+  resolver = "@cloudflare-doh"
+  address_family = "ipv4"
+
+      [listener.route.verify]
+      mode = "chain"
+
+
+  # ------------------------------------------------------------------------------
+  # CDN77
+  # ------------------------------------------------------------------------------
+
+  [[listener.route]]
+  match_sni = [
+    # Hanime1.me
+    "vdownload.hembed.com",
+  ]
+  type = "tls"
+  override_sni = "www.cdn77.com"
+  upstream = "@cdn77"
+
+      [listener.route.verify]
+      mode = "chain"
+
+
+  # ------------------------------------------------------------------------------
+  # Only DNS
+  # ------------------------------------------------------------------------------
+
+  [[listener.route]]
+  match_sni = [
+    # DLsite
+    ".dlsite.com",
+
+    # Sankaku Complex
+    ".sankakucomplex.com",
+
+    # yande.re
+    ".yande.re",
+  ]
+  type = "raw"
+  resolver = "@cloudflare-doh"
+
+
+  # ------------------------------------------------------------------------------
+  # Default
+  # ------------------------------------------------------------------------------
+
+  [listener.default_route]
+  type = "http"
+  upstream = "127.0.0.1:22222"
+  fail = "close"

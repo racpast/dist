@@ -1,0 +1,44 @@
+# Copyright © 2026 Racpast. All Rights Reserved.
+#
+# This file is part of SNIBypassGUI, a proprietary software project.
+#
+# NOTICE: All information contained herein is, and remains the property of
+# Racpast. The intellectual and technical concepts contained herein are
+# proprietary to Racpast and are protected by copyright law and international
+# treaties. Dissemination of this information or reproduction of this material
+# is strictly forbidden unless prior written permission is obtained from Racpast.
+#
+# Unauthorized copying, modification, distribution, or use of this file,
+# via any medium, is strictly prohibited.
+#
+# For licensing inquiries: snibypassgui@gmail.com or racpast@gmail.com
+#
+# See the license file in the project root for full terms and conditions.
+
+server e.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+# server u.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+server r.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+# server h.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+# server d.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+server a.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+# server f.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+server g.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+server c.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+# server i.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+# server j.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+server p.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+# server k.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+# server l.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+# server x.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+server b.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+# server y.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+# server z.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+# server s.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+# server m.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+# server n.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+# server t.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+server o.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+server q.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+server v.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+server w.ssl.global.fastly.net:443 max_fails=2 fail_timeout=60s resolve;
+# server pypi.org:443 max_fails=2 fail_timeout=60s resolve;
