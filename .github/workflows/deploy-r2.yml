@@ -1,0 +1,72 @@
+name: Deploy to Cloudflare R2 and Purge Cache
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview changes without modifying R2 or Cloudflare cache"
+        type: boolean
+        required: false
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: deploy-r2-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Sync and Purge
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    defaults:
+      run:
+        shell: bash --noprofile --norc -euo pipefail {0}
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      AWS_ENDPOINT_URL: https://${{ vars.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+      AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Sync files to R2
+        run: |
+          FLAGS=(
+            --delete
+            --no-follow-symlinks
+          )
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            FLAGS+=(--dryrun)
+          fi
+          aws s3 sync public "s3://${{ vars.R2_BUCKET }}" "${FLAGS[@]}"
+
+      - name: Purge Cloudflare cache
+        if: ${{ inputs.dry_run != true }}
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          BODY=$(jq -n --arg host "${{ vars.R2_PUBLIC_HOSTNAME }}" '{hosts: [$host]}')
+          RESPONSE=$(curl -sS --fail-with-body \
+            --connect-timeout 10 --max-time 60 --retry 5 \
+            -X POST "https://api.cloudflare.com/client/v4/zones/${{ vars.CF_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data "$BODY") || { echo "Purge request failed: $RESPONSE"; exit 1; }
+          if ! jq -e '.success == true' <<< "$RESPONSE" > /dev/null; then
+            echo "Cloudflare Purge API returned error: $RESPONSE"
+            exit 1
+          fi
+          echo "Cloudflare cache purge submitted: $(jq -r '.result.id' <<< "$RESPONSE")"

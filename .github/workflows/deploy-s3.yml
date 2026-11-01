@@ -1,0 +1,64 @@
+name: Deploy to S3 and Invalidate CloudFront
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview changes without modifying S3 or CloudFront"
+        type: boolean
+        required: false
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: deploy-s3-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Sync and Invalidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+
+    defaults:
+      run:
+        shell: bash --noprofile --norc -euo pipefail {0}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: github-deploy-${{ github.run_id }}
+
+      - name: Sync files to S3
+        run: |
+          FLAGS=(
+            --delete
+            --no-follow-symlinks
+          )
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            FLAGS+=(--dryrun)
+          fi
+          aws s3 sync public "s3://${{ vars.S3_BUCKET }}" "${FLAGS[@]}"
+
+      - name: Invalidate CloudFront cache
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          INVALIDATION_ID=$(aws cloudfront create-invalidation \
+            --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths "/*" \
+            --query "Invalidation.Id" \
+            --output text)
+          echo "CloudFront Invalidation submitted: $INVALIDATION_ID"
