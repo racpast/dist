@@ -1,0 +1,7 @@
+<!DOCTYPE html>
+<title>404 Not Found</title>
+<h1>404 Not Found</h1>
+<script>
+  var p = location.pathname;
+  document.write('<p>The requested ' + (/\/404(\.html)?$/.test(p) ? 'resource' : 'URL ' + p) + ' was not found.</p>');
+</script>
